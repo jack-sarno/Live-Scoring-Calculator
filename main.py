@@ -6,14 +6,32 @@ hide_debug_information()
 set_website_title("Live Scoring Calculator")
 set_site_information(author= "Jack Sarno",
                      description="Allows figure skating coachs to score practice programs live",
-                     sources= "Gemini",
-                     planning="",
-                     links=["https://github.com/jack-sarno/live-scoring-calculator"]
+                     sources= "Gemini", "ChatGPT"
+                     planning="Planning doc HEIC file",
+                     links=["https://github.com/jack-sarno/live-scoring-calculator",https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Figure%20Skating%20Jump%20Scoring%20Update.pdf,
+                     https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Figure%20Skating%20Scoring%20Program%20Implementation.pdf,
+                     https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Find%20Program%20Bugs.pdf, https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Find%20Program%20Bugs.pdf,
+                     https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/IMG_3077.HEIC, https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Parsing%20Figure%20Skating%20Jump%20Combinations.pdf]
                     )
 set_website_framed(False)
 
+from drafter import *
+from bakery import assert_equal
+from dataclasses import dataclass
+
 @dataclass
 class Element:
+    '''
+    Represents an element with its details
+    
+    Attributes:
+        num (str): for jumps it represents revolutions and for spins and steps it represents level
+        type (str): jump, spin, or step
+        name (str): specific type of the element
+        extra (list[str]): extra info about the element that you can get before the element is performed. Ex: "x"
+        goe (int): from -5 to 5, it represents how well the element is performed
+        extra2 (list[str]): extra info that you can only get after the element is performed. Ex: "V"
+    '''
     num: str
     type: str
     name: str
@@ -23,8 +41,20 @@ class Element:
     
 @dataclass
 class State:
+    '''
+    Represents the state of the Live Scoring Calculator
+    
+    Attributes:
+        elements (list[Element]): the list of all the elements in the program
+        element_num (int): While iterating through elements, represents the current element being modified from the list
+        tes (float): Technical score for the program
+        pcs (float): Components score for the program
+        falls (int): Amount of times the skater fell in the program
+        deductions (float): Deductions that are applied at the very end to the final score
+        bonuses (float): Keeps track of elements that recieve a bonuse (b)
+        list_str (float): elements in str form that is readable by the user
+    '''
     elements: list[Element]
-    str_elements: str
     element_num: int
     tes: float
     pcs: float
@@ -35,12 +65,31 @@ class State:
     
 @dataclass
 class Multiplier:
+    '''
+    Keeps track of the pcs multipliers for that specific level
+    
+    Attributes:
+        level (str): the level of that specific modifier
+        composition_and_presentation (float): composition and presentation always have the same modifier
+        skating(skills): the modifier for the skating skills score
+    '''
     level: str
     composition_and_presentation: float
     skating_skills: float
     
 @dataclass
 class Jump_BV:
+    '''
+    Holds the base values for a specific jump type and all of its rotations
+    
+    Attributes:
+        type (str): the type of jump. (There are 8 types: A, S, T, Lo, F, Lz, Wz, Eu)
+        zero (float): Value if the takeoff is clear but the skater didn't jump. Will always be 0.00
+        single (float): Single jump value
+        double (float): Double jump value
+        triple (float): Triple jump value
+        quadruple (float): Quadruple jump value
+    '''
     type: str
     zero: float
     single: float
@@ -50,6 +99,17 @@ class Jump_BV:
     
 @dataclass
 class Spin_BV:
+    '''
+    Holds the base values for a specific spin type and all of its possible levels
+    
+    Attributes:
+        type (str): The specific code for that spin
+        base (float): Level B value
+        one (float): Level 1 value
+        two (float): Level 2 value
+        three (float): Level 3 value
+        four (float): Level 4 value
+    '''
     type: str
     base: float
     one: float
@@ -58,6 +118,7 @@ class Spin_BV:
     four: float
     
 NUMBERS = ["1", "2", "3", "4"]
+
 PCS_MULTIPLIERS = [Multiplier("Championship Pre-Juvenile Freeskate", 0.96, 2.88), Multiplier("Championship Juvenile Freeskate", 1.25, 3.75),
                    Multiplier("Championship Intermediate Freeskate", 1.80, 3.60), Multiplier("Championship Novice Freeskate", 2.28, 3.04),
                    Multiplier("Championship Junior Women Freeskate", 2.67, 2.67), Multiplier("Championship Junior Men Freeskate", 3.33, 3.33),
@@ -546,9 +607,8 @@ def index(state: State) -> Page:
          ],
     )
 
-assert_equal(index(State(elements=[], str_elements='', element_num=0, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
+assert_equal(index(State(elements=[], element_num=0, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
     Page(State(elements=[],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -598,9 +658,8 @@ def go_to_jumps(state: State) -> Page:
          ],
     )
 
-assert_equal(go_to_jumps(State(elements=[], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
+assert_equal(go_to_jumps(State(elements=[], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
     Page(State(elements=[],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -715,9 +774,8 @@ def go_to_2jump(state: State) -> Page:
          ],
     )
 
-assert_equal(go_to_2jump(State(elements=[], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
+assert_equal(go_to_2jump(State(elements=[], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
     Page(State(elements=[],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -786,9 +844,8 @@ def go_to_3jump(state: State) -> Page:
          ],
     )
 
-assert_equal(go_to_3jump(State(elements=[], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
+assert_equal(go_to_3jump(State(elements=[], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
     Page(State(elements=[],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -864,9 +921,8 @@ def go_to_4jump(state: State) -> Page:
          ],
     )
 
-assert_equal(go_to_4jump(State(elements=[], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
+assert_equal(go_to_4jump(State(elements=[], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='')),
     Page(State(elements=[],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -1114,7 +1170,7 @@ def score_program(state: State, level: str, composition: float, presentation: fl
         state.deductions = -0.5 * state.falls
     return final_page(state)
 
-assert_equal(score_program(State(elements=[Element(num='4', type='spin', name='CCoSp', extra=[], goe=2, extra2=['V']), Element(num='4', type='jump', name='Lo', extra=[], goe=-3, extra2=['<']), Element(num='1', type='step', name='ChSq', extra=[], goe=4, extra2=[])], str_elements='', element_num=3, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), 'Championship Senior Men Freeskate', 8.75, 7.75, 8.75),
+assert_equal(score_program(State(elements=[Element(num='4', type='spin', name='CCoSp', extra=[], goe=2, extra2=['V']), Element(num='4', type='jump', name='Lo', extra=[], goe=-3, extra2=['<']), Element(num='1', type='step', name='ChSq', extra=[], goe=4, extra2=[])], element_num=3, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), 'Championship Senior Men Freeskate', 8.75, 7.75, 8.75),
     Page(State(elements=[Element(num='4',
                             type='spin',
                             name='CCoSp',
@@ -1133,7 +1189,6 @@ assert_equal(score_program(State(elements=[Element(num='4', type='spin', name='C
                             extra=[],
                             goe=4,
                             extra2=[])],
-          str_elements='',
           element_num=3,
           tes=15.7,
           pcs=84.08,
@@ -1184,14 +1239,13 @@ def add_jump(state: State, rotations: str, name: str, bonus: str) -> Page:
     state.list_str = label if not state.list_str else state.list_str + ", " + label
     return go_to_jumps(state)
 
-assert_equal(add_jump(State(elements=[], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str=''), '1', 'S', 'No bonus'),
+assert_equal(add_jump(State(elements=[], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str=''), '1', 'S', 'No bonus'),
     Page(State(elements=[Element(num='1',
                             type='jump',
                             name='S',
                             extra=[],
                             goe=0,
                             extra2=['clean'])],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -1249,14 +1303,13 @@ def add_2jump(state: State, rotations1: str, name1: str, rotations2: str, name2:
     state.list_str = label if not state.list_str else state.list_str + ", " + label
     return go_to_jumps(state)
 
-assert_equal(add_2jump(State(elements=[], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str=''), '1', 'S', '1', 'Lo', 'x'),
+assert_equal(add_2jump(State(elements=[], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str=''), '1', 'S', '1', 'Lo', 'x'),
     Page(State(elements=[Element(num='1+1',
                             type='jump',
                             name='S+Lo',
                             extra=['x'],
                             goe=0,
                             extra2=['clean', 'clean'])],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -1316,7 +1369,7 @@ def add_3jump(state: State, rotations1: str, name1: str, rotations2: str, name2:
     state.list_str = label if not state.list_str else state.list_str + ", " + label
     return go_to_jumps(state)
 
-assert_equal(add_3jump(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean'])], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox'), '1', 'S', '1', 'Eu', '1', 'F', 'No bonus'),
+assert_equal(add_3jump(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean'])], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox'), '1', 'S', '1', 'Eu', '1', 'F', 'No bonus'),
     Page(State(elements=[Element(num='1+1',
                             type='jump',
                             name='S+Lo',
@@ -1329,7 +1382,6 @@ assert_equal(add_3jump(State(elements=[Element(num='1+1', type='jump', name='S+L
                             extra=[],
                             goe=0,
                             extra2=['clean', 'clean', 'clean'])],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -1390,7 +1442,7 @@ def add_4jump(state: State, rotations1: str, name1: str, rotations2: str, name2:
     state.list_str = label if not state.list_str else state.list_str + ", " + label
     return go_to_jumps(state)
 
-assert_equal(add_4jump(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean']), Element(num='1+1+1', type='jump', name='S+Eu+F', extra=[], goe=0, extra2=['clean', 'clean', 'clean'])], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox, 1S+1Eu+1F'), '3', 'A', '1', 'Eu', '3', 'S', '2', 'A', 'x'),
+assert_equal(add_4jump(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean']), Element(num='1+1+1', type='jump', name='S+Eu+F', extra=[], goe=0, extra2=['clean', 'clean', 'clean'])], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox, 1S+1Eu+1F'), '3', 'A', '1', 'Eu', '3', 'S', '2', 'A', 'x'),
     Page(State(elements=[Element(num='1+1',
                             type='jump',
                             name='S+Lo',
@@ -1409,7 +1461,6 @@ assert_equal(add_4jump(State(elements=[Element(num='1+1', type='jump', name='S+L
                             extra=['x'],
                             goe=0,
                             extra2=['clean', 'clean', 'clean', 'clean'])],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -1488,7 +1539,7 @@ def add_spin(state: State, variation: str, flying: bool, change: bool) -> Page:
                 state.list_str += ", " + variation
     return go_to_jumps(state)
 
-assert_equal(add_spin(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean']), Element(num='1+1+1', type='jump', name='S+Eu+F', extra=[], goe=0, extra2=['clean', 'clean', 'clean']), Element(num='3+1+3+2', type='jump', name='A+Eu+S+A', extra=['x'], goe=0, extra2=['clean', 'clean', 'clean', 'clean'])], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox, 1S+1Eu+1F, 3A+1Eu+3S+2Ax'), 'SSp', True, False),
+assert_equal(add_spin(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean']), Element(num='1+1+1', type='jump', name='S+Eu+F', extra=[], goe=0, extra2=['clean', 'clean', 'clean']), Element(num='3+1+3+2', type='jump', name='A+Eu+S+A', extra=['x'], goe=0, extra2=['clean', 'clean', 'clean', 'clean'])], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox, 1S+1Eu+1F, 3A+1Eu+3S+2Ax'), 'SSp', True, False),
     Page(State(elements=[Element(num='1+1',
                             type='jump',
                             name='S+Lo',
@@ -1513,7 +1564,6 @@ assert_equal(add_spin(State(elements=[Element(num='1+1', type='jump', name='S+Lo
                             extra=[],
                             goe=0,
                             extra2=[])],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -1567,7 +1617,7 @@ def add_step(state: State, variation: str) -> Page:
         state.list_str += ", " + variation
     return go_to_jumps(state)
 
-assert_equal(add_step(State(elements=[Element(num='1', type='jump', name='S', extra=[], goe=0, extra2=['clean'])], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S'), 'StSq'),
+assert_equal(add_step(State(elements=[Element(num='1', type='jump', name='S', extra=[], goe=0, extra2=['clean'])], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S'), 'StSq'),
     Page(State(elements=[Element(num='1',
                             type='jump',
                             name='S',
@@ -1580,7 +1630,6 @@ assert_equal(add_step(State(elements=[Element(num='1', type='jump', name='S', ex
                             extra=[],
                             goe=0,
                             extra2=[])],
-          str_elements='',
           element_num=-1,
           tes=0.0,
           pcs=0.0,
@@ -1636,7 +1685,7 @@ def go_to_next_element(state: State) -> Page:
     if state.elements[state.element_num].type == "step":
         return score_step(state)
     
-assert_equal(go_to_next_element(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean']), Element(num='1+1+1', type='jump', name='S+Eu+F', extra=[], goe=0, extra2=['clean', 'clean', 'clean']), Element(num='3+1+3+2', type='jump', name='A+Eu+S+A', extra=['x'], goe=0, extra2=['clean', 'clean', 'clean', 'clean']), Element(num='', type='spin', name='FSSp', extra=[], goe=0, extra2=[])], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox, 1S+1Eu+1F, 3A+1Eu+3S+2Ax, FSSp')),
+assert_equal(go_to_next_element(State(elements=[Element(num='1+1', type='jump', name='S+Lo', extra=['x'], goe=0, extra2=['clean', 'clean']), Element(num='1+1+1', type='jump', name='S+Eu+F', extra=[], goe=0, extra2=['clean', 'clean', 'clean']), Element(num='3+1+3+2', type='jump', name='A+Eu+S+A', extra=['x'], goe=0, extra2=['clean', 'clean', 'clean', 'clean']), Element(num='', type='spin', name='FSSp', extra=[], goe=0, extra2=[])], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='1S+1Lox, 1S+1Eu+1F, 3A+1Eu+3S+2Ax, FSSp')),
     Page(State(elements=[Element(num='1+1',
                             type='jump',
                             name='S+Lo',
@@ -1661,7 +1710,6 @@ assert_equal(go_to_next_element(State(elements=[Element(num='1+1', type='jump', 
                             extra=[],
                             goe=0,
                             extra2=[])],
-          str_elements='',
           element_num=0,
           tes=0.0,
           pcs=0.0,
@@ -1718,7 +1766,7 @@ def setup_live_from_str(state: State, element_list_str: str) -> Page:
     state.list_str = element_list_str
     return go_to_next_element(state)
 
-assert_equal(setup_live_from_str(State(elements=[], str_elements='', element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str=''), 'CCoSp, 4Lo, ChSq'),
+assert_equal(setup_live_from_str(State(elements=[], element_num=-1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str=''), 'CCoSp, 4Lo, ChSq'),
     Page(State(elements=[Element(num='',
                             type='spin',
                             name='CCoSp',
@@ -1737,7 +1785,6 @@ assert_equal(setup_live_from_str(State(elements=[], str_elements='', element_num
                             extra=[],
                             goe=0,
                             extra2=[])],
-          str_elements='',
           element_num=0,
           tes=0.0,
           pcs=0.0,
@@ -1833,7 +1880,7 @@ def jump_next_element(
     current_el.extra2 = updated_extra2
     return go_to_next_element(state)
 
-assert_equal(jump_next_element(State(elements=[Element(num='4', type='spin', name='CCoSp', extra=[], goe=2, extra2=['V']), Element(num='4', type='jump', name='Lo', extra=[], goe=0, extra2=[]), Element(num='', type='step', name='ChSq', extra=[], goe=0, extra2=[])], str_elements='', element_num=1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), -3, 'clean', False, False, False, False, '<'),
+assert_equal(jump_next_element(State(elements=[Element(num='4', type='spin', name='CCoSp', extra=[], goe=2, extra2=['V']), Element(num='4', type='jump', name='Lo', extra=[], goe=0, extra2=[]), Element(num='', type='step', name='ChSq', extra=[], goe=0, extra2=[])], element_num=1, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), -3, 'clean', False, False, False, False, '<'),
     Page(State(elements=[Element(num='4',
                             type='spin',
                             name='CCoSp',
@@ -1852,7 +1899,6 @@ assert_equal(jump_next_element(State(elements=[Element(num='4', type='spin', nam
                             extra=[],
                             goe=0,
                             extra2=[])],
-          str_elements='',
           element_num=2,
           tes=0.0,
           pcs=0.0,
@@ -1917,7 +1963,7 @@ def spin_next_element(state: State, goe: int, level: str, missing_variation: boo
         state.falls += 1
     return go_to_next_element(state)
 
-assert_equal(spin_next_element(State(elements=[Element(num='', type='spin', name='CCoSp', extra=[], goe=0, extra2=[]), Element(num='4', type='jump', name='Lo', extra=[], goe=0, extra2=[]), Element(num='', type='step', name='ChSq', extra=[], goe=0, extra2=[])], str_elements='', element_num=0, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), 2, '4', True, False, False),
+assert_equal(spin_next_element(State(elements=[Element(num='', type='spin', name='CCoSp', extra=[], goe=0, extra2=[]), Element(num='4', type='jump', name='Lo', extra=[], goe=0, extra2=[]), Element(num='', type='step', name='ChSq', extra=[], goe=0, extra2=[])], element_num=0, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), 2, '4', True, False, False),
     Page(State(elements=[Element(num='4',
                             type='spin',
                             name='CCoSp',
@@ -1936,7 +1982,6 @@ assert_equal(spin_next_element(State(elements=[Element(num='', type='spin', name
                             extra=[],
                             goe=0,
                             extra2=[])],
-          str_elements='',
           element_num=1,
           tes=0.0,
           pcs=0.0,
@@ -2008,7 +2053,7 @@ def step_next_element(state: State, goe: int, level: str, bonus: bool, invalid: 
         state.falls += 1
     return go_to_next_element(state)
 
-assert_equal(step_next_element(State(elements=[Element(num='4', type='spin', name='CCoSp', extra=[], goe=2, extra2=['V']), Element(num='4', type='jump', name='Lo', extra=[], goe=-3, extra2=['<']), Element(num='', type='step', name='ChSq', extra=[], goe=0, extra2=[])], str_elements='', element_num=2, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), 4, '1', False, False, False),
+assert_equal(step_next_element(State(elements=[Element(num='4', type='spin', name='CCoSp', extra=[], goe=2, extra2=['V']), Element(num='4', type='jump', name='Lo', extra=[], goe=-3, extra2=['<']), Element(num='', type='step', name='ChSq', extra=[], goe=0, extra2=[])], element_num=2, tes=0.0, pcs=0.0, falls=0, deductions=0.0, bonuses=0.0, list_str='CCoSp, 4Lo, ChSq'), 4, '1', False, False, False),
     Page(State(elements=[Element(num='4',
                             type='spin',
                             name='CCoSp',
@@ -2027,7 +2072,6 @@ assert_equal(step_next_element(State(elements=[Element(num='4', type='spin', nam
                             extra=[],
                             goe=4,
                             extra2=[])],
-          str_elements='',
           element_num=3,
           tes=0.0,
           pcs=0.0,
@@ -2052,5 +2096,4 @@ assert_equal(step_next_element(State(elements=[Element(num='4', type='spin', nam
         Button('Finish', 'score_program'),
     ]))
 
-start_server(State([], "", 0, 0.0, 0.0, 0, 0.0, 0.0, ""))
-
+start_server(State([], 0, 0.0, 0.0, 0, 0.0, 0.0, ""))
