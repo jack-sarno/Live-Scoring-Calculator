@@ -11,10 +11,6 @@ set_site_information(author= "Jack Sarno",
                      links=["https://github.com/jack-sarno/Live-Scoring-Calculator"])
 set_website_framed(False)
 
-from drafter import *
-from bakery import assert_equal
-from dataclasses import dataclass
-
 @dataclass
 class Element:
     '''
