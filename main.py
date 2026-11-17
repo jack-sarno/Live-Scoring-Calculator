@@ -18,7 +18,7 @@ set_site_information(author= "Jack Sarno",
                      description="Allows figure skating coachs to score practice programs live",
                      sources= "Gemini", "ChatGPT"
                      planning="Planning.png",
-                     links=["https://github.com/jack-sarno/live-scoring-calculator"])
+                     links=["https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Planning.png"])
 set_website_framed(False)
 
 from drafter import *
