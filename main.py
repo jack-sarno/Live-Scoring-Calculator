@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 hide_debug_information()
 set_website_title("Live Scoring Calculator")
+'''
 set_site_information(author= "Jack Sarno",
                      description="Allows figure skating coachs to score practice programs live",
                      sources= "Gemini", "ChatGPT"
@@ -12,6 +13,12 @@ set_site_information(author= "Jack Sarno",
                      "https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Figure%20Skating%20Scoring%20Program%20Implementation.pdf",
                      "https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Find%20Program%20Bugs.pdf", "https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Find%20Program%20Bugs.pdf, https://github.com/jack-sarno/Live-Scoring-Calculator/blob/main/Parsing%20Figure%20Skating%20Jump%20Combinations.pdf"]
                     )
+'''
+set_site_information(author= "Jack Sarno",
+                     description="Allows figure skating coachs to score practice programs live",
+                     sources= "Gemini", "ChatGPT"
+                     planning="Planning.png",
+                     links=["https://github.com/jack-sarno/live-scoring-calculator"])
 set_website_framed(False)
 
 from drafter import *
